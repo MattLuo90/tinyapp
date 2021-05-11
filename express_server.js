@@ -24,7 +24,7 @@ const urlDatabase = {
 
 app.set('view engine', 'ejs');
 app.get("/", (req, res) => {
-  res.send("welcome to my Tiny App.")
+  res.send("welcome to my Tiny app.")
 });
 
 app.get("/urls", (req, res) => {
