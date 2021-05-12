@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registration</title>
+</head>
+<%- include('partials/_commonHeader') %>
+<body>
+  <form action="/register" method="POST" style="float:center; margin: 1em">
+    <div class="input-wrap">
+      <label for="email" class="label">Username(email):</label>
+      <input class="input" type="email" name="email" style="width: 300px">
+      <label for="password" class="label">password:</label>
+      <input class="input" type="text" name="password" style="width: 200px">
+      <button type="submit" class="btn btn-primary">sign up</button>
+    </div>
+  </form>
+</body>
+</html>
