@@ -4,6 +4,7 @@ const morgan = require("morgan");
 const app = express();
 const PORT = 8080; 
 const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser")
 
 //function to generate 6 new random charactors.
 const generateRandomString = () => {
@@ -14,9 +15,11 @@ const generateRandomString = () => {
   }
   return random;
 };
+
 //milldeware
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(morgan("dev"));
+app.use(cookieParser())
 
 //hard code of database
 const urlDatabase = {
@@ -31,11 +34,16 @@ app.set('view engine', 'ejs');
 app.get("/", (req, res) => {
   res.send("hello");
 });
+
 //perform a function that shows urlDatabase on urls page
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase }
-  res.render('urls_index', templateVars);
+  const templateVars = {
+    urls: urlDatabase
+  };
+  templateVars.username = req.cookies["username"];
+  res.render("urls_index", templateVars)
 });
+
 //perform a function that can generate a new random string for a long URL.
 app.post("/urls", (req, res) => {                                 
   const randomString = generateRandomString();
@@ -43,21 +51,39 @@ app.post("/urls", (req, res) => {
   urlDatabase[randomString] = `http://${req.body.longURL}`; 
   res.redirect(newShortURL);        
 });
+
 //perform a function that can delete a exist URL
 app.post("/urls/:shortURL/delete", (req, res) => {
   const URLToBeDeleted = req.params.shortURL;
   delete urlDatabase[URLToBeDeleted];
   res.redirect("/urls")
-})
+});
+
 //Perform a function that can update a exist shortURL's longURL
-app.post("/urls/:shortURL/update", (req,res) => {
+app.post("/urls/:shortURL/update", (req, res) => {
   urlDatabase[req.params.shortURL] = `http://${req.body.newLongURL}`
   res.redirect("/urls")
-})
+});
+
+//function to login to web
+app.post("/login", (req, res) => {
+  res.cookie('username', req.body.username);
+  res.redirect("/urls")
+});
+
+//function to logout from web
+app.post("/logout", (req, res) => {
+  res.clearCookie("username");
+  res.redirect("/urls")
+});
 
 //the page operate a function that create a new short & long URL pair.
 app.get("/urls/new", (req, res) => { 
-  res.render("urls_new");
+  const templateVars = {
+    urls: urlDatabase
+  };
+  templateVars.username = req.cookies["username"];
+  res.render("urls_new", templateVars);
 });
 
 //the page that shows the new short & long URL pair.
