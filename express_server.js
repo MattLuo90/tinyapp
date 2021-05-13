@@ -5,47 +5,13 @@ const app = express();
 const PORT = 8080; 
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
-const {emailCheck, passwordCheck, idCheck, generateRandomString} = require("./functions")
-
-
-// //function to generate 6 new random charactors.
-// const generateRandomString = () => {
-//   let random = '';
-//   const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-//   for (let i = 0; i < 6; i++) {
-//     random += chars[Math.floor(Math.random() * chars.length)];
-//   }
-//   return random;
-// };
-
-// const emailCheck = (emailToBeChecked) => {
-//   for (const key in users) {
-//     if (users[key].email === emailToBeChecked ) {
-//       return true;
-//     }
-//   }
-//   return false;
-// };
-
-// const passwordCheck = (matchedEmail, passwordToBeChecked) => {
-//   for (const key in users) {
-//     if (users[key].email === matchedEmail) {
-//       if (users[key].password === passwordToBeChecked) {
-//         return true;
-//       }
-//     }
-//   }
-//   return false;
-// };
-
-// const idCheck = (matchedEmail) => {
-//   for (const key in users) {
-//     if (users[key].email === matchedEmail) {
-//       return key;
-//     }
-//   }
-//   return false;
-// };
+const {
+  emailCheck, 
+  passwordCheck,
+   idCheck, 
+   generateRandomString, 
+   urlsForUser
+  } = require("./functions")
 
 
 //milldeware
@@ -58,11 +24,17 @@ const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
+
 const users = { 
   "userRandomID": {
     id: "userRandomID", 
     email: "user@example.com", 
     password: "purple-monkey-dinosaur"
+  },
+  "aJ48lW" : {
+    id:"aJ48lW",
+    email: "mattluo604@hotmail.com",
+    password: "123456"
   }
 };
 
@@ -97,25 +69,41 @@ app.get("/urls/new", (req, res) => {
 
 //the page that shows the new short & long URL pair.
 app.get("/urls/:shortURL", (req, res) => {
-  console.log(req.params.shortURL)
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL};
+  if(req.cookies["newID"]) {
+    console.log(req.params.shortURL)
+    const templateVars = { 
+      shortURL: req.params.shortURL, 
+      longURL: urlDatabase[req.params.shortURL].longURL
+    };
+    templateVars.user = users[req.cookies['newID']];
+    res.render("urls_show", templateVars);
+    return;
+  }
+  const templateVars = {
+    urls: urlDatabase,
+  };
   templateVars.user = users[req.cookies['newID']];
-  res.render("urls_show", templateVars);
+    res.render("askForLogin",templateVars);
 });
 
 //perform a function that shows urlDatabase on urls page
 app.get("/urls", (req, res) => {
-  if(req.cookie["newID"]) {
+  if(urlsForUser(users,req.cookies["newID"])) {
   const templateVars = {
     urls: urlDatabase,
   };
   templateVars.user = users[req.cookies['newID']];
   res.render("urls_index", templateVars);
+  return;
 }
-
+const templateVars = {
+  urls: urlDatabase,
+};
+templateVars.user = users[req.cookies['newID']];
+  res.render("askForLogin",templateVars);
 });
 
-//the request that can redirect to a shortURL page
+//the request that can redirect to a longURL page
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
@@ -126,7 +114,7 @@ app.post("/register", (req, res) => {
   if (!req.body.email || !req.body.password) {
     return res.redirect(400, '/register');
   }
-  if (emailCheck(req.body.email)) {
+  if (emailCheck(users,req.body.email)) {
     res.send("This email address has alreay been registered., please use another one.");
     return;
 }
@@ -145,8 +133,8 @@ app.post("/register", (req, res) => {
 //function to login to web
 app.post("/login", (req, res) => {
   console.log(req.body.password)
-  if(emailCheck(req.body.email) && passwordCheck(req.body.email, req.body.password)) {
-    res.cookie("newID", idCheck(req.body.email));
+  if(emailCheck(users,req.body.email) && passwordCheck(users,req.body.email, req.body.password)) {
+    res.cookie("newID", idCheck(users,req.body.email));
     res.redirect("/urls");
     return;
   }
@@ -154,8 +142,7 @@ app.post("/login", (req, res) => {
 });
 
 //perform a function that can generate a new random string for a long URL.
-app.post("/urls", (req, res) => {                   
-  console.log(req.body)          
+app.post("/urls", (req, res) => {                            
   const randomString = generateRandomString();
   const newShortURL = `http://localhost:${PORT}/urls/${randomString}`;
   urlDatabase[randomString] = {
@@ -168,15 +155,30 @@ app.post("/urls", (req, res) => {
 
 //perform a function that can delete a exist URL
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const URLToBeDeleted = req.params.shortURL;
-  delete urlDatabase[URLToBeDeleted];
-  res.redirect("/urls")
+  const shortURL= req.params.shortURL;
+  if (!urlDatabase[shortURL]) {
+    return res.redirect(404, "/urls")
+  }
+  if(req.cookies["newID"] === urlDatabase[shortURL].userID) {
+    const URLToBeDeleted = req.params.shortURL;
+    delete urlDatabase[URLToBeDeleted];
+    res.redirect("/urls");
+    return;
+  }
+  res.send("you don't have permission to delete URL.")
 });
 
 //Perform a function that can update a exist shortURL's longURL
 app.post("/urls/:shortURL/update", (req, res) => {
-  urlDatabase[req.params.shortURL].longURL = `http://${req.body.newLongURL}`
-  res.redirect("/urls")
+  const shortURL= req.params.shortURL;
+  if (!urlDatabase[shortURL]) {
+    return res.redirect(404, "/urls")
+  }
+  if(req.cookies["newID"] === urlDatabase[shortURL].userID) {
+    urlDatabase[req.params.shortURL].longURL = `http://${req.body.newLongURL}`
+    return res.redirect("/urls")
+  }
+  res.send("you don't have permission to edit URL.")
 });
 
 
