@@ -144,7 +144,7 @@ app.post("/login", (req, res) => {
 //perform a function that can generate a new random string for a long URL.
 app.post("/urls", (req, res) => {                            
   const randomString = generateRandomString();
-  const newShortURL = `http://localhost:${PORT}/urls/${randomString}`;
+  const newShortURL = `/urls/${randomString}`;
   urlDatabase[randomString] = {
    longURL: `http://${req.body.longURL}`,
    userID: req.cookies["newID"]
