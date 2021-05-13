@@ -1,4 +1,5 @@
 //packages that installed through npm
+const bcrypt = require('bcrypt')
 const express = require("express");
 const morgan = require("morgan");
 const app = express();
@@ -119,22 +120,25 @@ app.post("/register", (req, res) => {
     return;
 }
   const randomUserID = generateRandomString();
+  const hashedPassword = bcrypt.hashSync(req.body.password, 10)
   const newUser = {
     id: randomUserID,
     email: req.body.email,
-    password: req.body.password
+    password: hashedPassword
   };
   users[randomUserID] = newUser;
   res.cookie('newID', randomUserID);
-  // console.log('users:', users)
+  console.log('users:', users)
   res.redirect("/urls");
 })
 
 //function to login to web
 app.post("/login", (req, res) => {
-  console.log(req.body.password)
-  if(emailCheck(users,req.body.email) && passwordCheck(users,req.body.email, req.body.password)) {
-    res.cookie("newID", idCheck(users,req.body.email));
+  const loginPassword = req.body.password;
+  const loginEmail = req.body.email;
+  const hashedPassword = users[idCheck(users, loginEmail)].password;
+  if(emailCheck(users,req.body.email) && bcrypt.compareSync(loginPassword, hashedPassword)) {
+    res.cookie("newID", idCheck(users,loginEmail));
     res.redirect("/urls");
     return;
   }
