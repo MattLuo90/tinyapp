@@ -16,24 +16,24 @@ const emailCheck = (obj,emailToBeChecked) => {
   return false;
 };
 
-const passwordCheck = (obj,matchedEmail, passwordToBeChecked) => {
-  for (const key in obj) {
-    if (obj[key].email === matchedEmail) {
-      if (obj[key].password === passwordToBeChecked) {
-        return true;
-      }
-    }
-  }
-  return false;
-};
+// const passwordCheck = (obj,matchedEmail, passwordToBeChecked) => {
+//   for (const key in obj) {
+//     if (obj[key].email === matchedEmail) {
+//       if (obj[key].password === passwordToBeChecked) {
+//         return true;
+//       }
+//     }
+//   }
+//   return false;
+// };
 
-const idCheck = (obj,matchedEmail) => {
-  for (const key in obj) {
-    if (obj[key].email === matchedEmail) {
-      return key;
+const idCheck = (matchedEmail, obj) => {
+  for (const user in obj) {
+    if (obj[user].email === matchedEmail) {
+      return user;
     }
   }
-  return false;
+  return undefined;
 };
 
 const urlsForUser = (database, cookie) => {
@@ -42,13 +42,13 @@ const urlsForUser = (database, cookie) => {
       return true;
     }
   }
-  return false;
+  return undefined;
 }
 
 module.exports = {
   generateRandomString,
   idCheck,
   emailCheck,
-  passwordCheck,
+  // passwordCheck,
   urlsForUser
 }
