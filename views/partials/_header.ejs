@@ -18,11 +18,16 @@
         </div>
       </form>
    <% } else { %>
-    <form action="/login" method="POST" style="float:right">
+    <form action="/register" method="GET" style="float:right">
       <div class="input-wrap">
-        <label for="username" class="label">Username:</label>
-        <input class="input" type="text" name="username" style="width: 200px">
-        <button type="submit" class="btn btn-primary">login</button>
+        <label for="register" class="label">No account yet ?</label>
+        <button type="submit" class="btn btn-warning">sign up</button>
+      </div>
+    </form>
+    <form action="/login" method="GET" style="float:right;margin: 1em">
+      <div class="input-wrap">
+        <label for="register" class="label">   Or </label>
+        <button type="submit" class="btn btn-primary">sign in</button>
       </div>
     </form>
   <%}%>
