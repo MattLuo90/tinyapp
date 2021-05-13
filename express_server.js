@@ -85,12 +85,13 @@ app.get("/urls/new", (req, res) => {
     urls: urlDatabase,
   };
   templateVars.user = users[req.cookies['newID']];
-  res.render("urls_index", templateVars)
+  res.render("urls_new", templateVars)
 });
 
 //the page that shows the new short & long URL pair.
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  templateVars.user = users[req.cookies['newID']];
   res.render("urls_show", templateVars);
 });
 
