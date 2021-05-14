@@ -117,7 +117,7 @@ app.post("/register", (req, res) => {
     return res.redirect(400, '/register');
   }
   if (emailCheck(users,req.body.email)) {
-    res.send("This email address has alreay been registered., please use another one.");
+    res.send("This email address has alreay been registered, please use another one.");
     return;  // error msg sent
   }
   const randomUserID = generateRandomString();
